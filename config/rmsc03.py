@@ -50,7 +50,7 @@ parser.add_argument('--start-time',
                     help='Starting time of simulation.'
                     )
 parser.add_argument('--end-time',
-                    default='11:30:00',
+                    default='16:00:00',
                     type=parse,
                     help='Ending time of simulation.'
                     )

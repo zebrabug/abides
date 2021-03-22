@@ -99,8 +99,8 @@ class L3OrdersProcessor:
             try:
                 #return datetime.strptime(date_str, '%Y%m%d%H%M%S.%f')
                 
-                #return pd.to_datetime("2012-06-21 00:00:00") + pd.Timedelta(seconds=float(date_str))
-                return pd.Timestamp("2012-06-21 00:00:00") + float(date_str) * pd.offsets.Second()
+                return pd.to_datetime("2012-06-21 00:00:00") + pd.Timedelta(seconds=float(date_str))
+                #return pd.Timestamp("2012-06-21 00:00:00") + float(date_str) * pd.offsets.Second()
             except ValueError:
                 return None #convertDate(date_str[:-1])
 
