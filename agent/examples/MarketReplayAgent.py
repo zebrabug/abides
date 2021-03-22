@@ -119,7 +119,7 @@ class L3OrdersProcessor:
             # all_columns = orders_df.columns[0].split('|')
             # orders_df = orders_df[orders_df.columns[0]].str.split('|', 16, expand=True)
             # orders_df.columns = all_columns
-            orders_df = pd.read_csv(self.orders_file_path, header=None, nrows=5000)
+            orders_df = pd.read_csv(self.orders_file_path, header=None) #, nrows=5000
             #orders_df = orders_df[L3OrdersProcessor.COLUMNS]
             orders_df.columns = self.COLUMNS
             orders_df['Direction'] = orders_df['Direction'].astype(int).replace(L3OrdersProcessor.DIRECTION)
