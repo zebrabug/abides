@@ -91,15 +91,16 @@ agents.extend([ExchangeAgent(id=0,
                              pipeline_delay=0,
                              computation_delay=0,
                              stream_history=10,
-                             book_freq='all',
+                             #book_freq='all',
+                             book_freq='S',
                              random_state=np.random.RandomState(seed=np.random.randint(low=0, high=2 ** 32,
                                                                                        dtype='uint64')))])
 agent_types.extend("ExchangeAgent")
 agent_count += 1
 
 # 2) Market Replay Agent
-file_name = f'DOW30/{symbol}/{symbol}.{historical_date}'
-orders_file_path = f'/efs/data/{file_name}'
+file_name = 'MSFT_2012-06-21_34200000_57600000_message_5.csv' #f'DOW30/{symbol}/{symbol}.{historical_date}'
+orders_file_path = f'./data/{file_name}'
 
 agents.extend([MarketReplayAgent(id=1,
                                  name="MARKET_REPLAY_AGENT",
@@ -110,7 +111,7 @@ agents.extend([MarketReplayAgent(id=1,
                                  start_time=mkt_open,
                                  end_time=mkt_close,
                                  orders_file_path=orders_file_path,
-                                 processed_orders_folder_path='/efs/data/marketreplay/',
+                                 processed_orders_folder_path='./data/marketreplay/',
                                  starting_cash=0,
                                  random_state=np.random.RandomState(seed=np.random.randint(low=0, high=2 ** 32,
                                                                                            dtype='uint64')))])
