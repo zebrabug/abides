@@ -8,6 +8,9 @@ from util.util import log_print
 from copy import deepcopy
 import sys
 
+#DEBUG
+import traceback
+
 # The TradingAgent class (via FinancialAgent, via Agent) is intended as the
 # base class for all trading agents (i.e. not things like exchanges) in a
 # market simulation.  It handles a lot of messaging (inbound and outbound)
@@ -294,6 +297,11 @@ class TradingAgent(FinancialAgent):
   # whether cash or risk limits should be enforced or ignored for the order.
   def placeLimitOrder (self, symbol, quantity, is_buy_order, limit_price, order_id=None, ignore_risk = True, tag = None):
     order = LimitOrder(self.id, self.currentTime, symbol, quantity, is_buy_order, limit_price, order_id, tag)
+
+    #DEBUG to see event from Momentum agent
+    stack_list = [f for f in traceback.format_stack()]
+    if 'Momentum' in stack_list[len(stack_list)-2]:
+      DEBUG = True
 
     if quantity > 0:
       # Test if this order can be permitted given our at-risk limits.

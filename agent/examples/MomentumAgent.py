@@ -12,7 +12,7 @@ class MomentumAgent(TradingAgent):
 
     def __init__(self, id, name, type, symbol, starting_cash,
                  min_size, max_size, wake_up_freq='60s',
-                 subscribe=False, log_orders=False, random_state=None):
+                 subscribe=False, log_orders=False, random_state=None, is_short=False):
 
         super().__init__(id, name, type, starting_cash=starting_cash, log_orders=log_orders, random_state=random_state)
         self.symbol = symbol
@@ -25,6 +25,7 @@ class MomentumAgent(TradingAgent):
         self.mid_list, self.avg_20_list, self.avg_50_list = [], [], []
         self.log_orders = log_orders
         self.state = "AWAITING_WAKEUP"
+        self.is_short = is_short
 
     def kernelStarting(self, startTime):
         super().kernelStarting(startTime)
@@ -60,10 +61,17 @@ class MomentumAgent(TradingAgent):
             if len(self.mid_list) > 20: self.avg_20_list.append(MomentumAgent.ma(self.mid_list, n=20)[-1].round(2))
             if len(self.mid_list) > 50: self.avg_50_list.append(MomentumAgent.ma(self.mid_list, n=50)[-1].round(2))
             if len(self.avg_20_list) > 0 and len(self.avg_50_list) > 0:
-                if self.avg_20_list[-1] >= self.avg_50_list[-1]:
+                if self.avg_20_list[-1] >= self.avg_50_list[-1] and 'CASH' in self.holdings and \
+                self.holdings['CASH'] >= self.size * ask:
                     self.placeLimitOrder(self.symbol, quantity=self.size, is_buy_order=True, limit_price=ask)
                 else:
-                    self.placeLimitOrder(self.symbol, quantity=self.size, is_buy_order=False, limit_price=bid)
+                    if self.is_short:
+                        self.placeLimitOrder(self.symbol, quantity=self.size, is_buy_order=False, limit_price=bid)
+                    elif self.symbol in self.holdings and self.holdings[self.symbol] >= self.size:
+                        self.placeLimitOrder(self.symbol, quantity=self.size, is_buy_order=False, limit_price=bid)
+                    else:
+                        None
+
 
     def getWakeFrequency(self):
         return pd.Timedelta(self.wake_up_freq)
