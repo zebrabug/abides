@@ -105,7 +105,7 @@ class ExchangeAgent(FinancialAgent):
       # Iterate over the order books controlled by this exchange.
       for symbol in self.order_books:
         start_time = dt.datetime.now()
-        self.logOrderBookSnapshots(symbol)
+        #self.logOrderBookSnapshots(symbol)
         end_time = dt.datetime.now()
         print("Time taken to log the order book: {}".format(end_time - start_time))
         print("Order book archival complete.")

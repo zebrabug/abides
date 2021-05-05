@@ -17,6 +17,7 @@ from agent.ValueAgent import ValueAgent
 from agent.market_makers.AdaptiveMarketMakerAgent import AdaptiveMarketMakerAgent
 from agent.examples.MomentumAgent import MomentumAgent
 from agent.examples.MarketReplayAgentUSD import MarketReplayAgentUSD
+from agent.examples.RejectReplayAgent import RejectReplayAgent
 from agent.execution.POVExecutionAgent import POVExecutionAgent
 from agent.OrderBookImbalanceAgent import OrderBookImbalanceAgent
 from model.LatencyModel import LatencyModel
@@ -39,7 +40,7 @@ parser.add_argument('-d', '--historical-date',
                     type=parse,
                     help='historical date being simulated in format YYYYMMDD.')
 parser.add_argument('--start-time',
-                    default='10:30:00',
+                    default='10:00:00',
                     type=parse,
                     help='Starting time of simulation.'
                     )
@@ -117,6 +118,7 @@ parser.add_argument('--fund-vol',
                     help='Volatility of fundamental time series.'
                     )
 
+
 args, remaining_args = parser.parse_known_args()
 
 if args.config_help:
@@ -142,20 +144,34 @@ print("Configuration seed: {}\n".format(seed))
 ############################################### AGENTS CONFIG ##########################################################
 
 # Historical date to simulate.
-historical_date = pd.to_datetime(args.historical_date)
+historical_date = pd.to_datetime(args.historical_date)#.tz_localize('Europe/Moscow')
 mkt_open = historical_date + pd.to_timedelta(args.start_time.strftime('%H:%M:%S'))
-mkt_close = historical_date + pd.to_timedelta(args.end_time.strftime('%H:%M:%S'))
 agent_count, agents, agent_types = 0, [], []
+
+short_date = str(historical_date)[5:7] + str(historical_date)[8:10]
+micex = 'LOB_'+short_date+'.pkl'
+micex_lob_path = f'./data/marketreplay/input/LOB/{micex}'
+
+#good_rejects = 'all_09_rejects.pkl'
+#morning_rejects = 'morning_rejects.pkl' # with target true
+all_morning_rejects = 'all_morning_rejects.pkl'  #all rejects
+good_rejects_path = f'./data/marketreplay/input/{all_morning_rejects}'
+
+good_rejects_df = pd.read_pickle(good_rejects_path)
+
+#DEBUG
+mkt_close = good_rejects_df[good_rejects_df['Moment'].dt.date == pd.to_datetime(historical_date).date()]['Moment'].max() + \
+            pd.Timedelta(120, unit='s')
+#mkt_close = historical_date + pd.to_timedelta(args.end_time.strftime('%H:%M:%S'))
 
 # Hyperparameters
 symbol = args.ticker
-starting_cash = 10000000  # Cash in this simulator is always in RUB.
 
 
 stream_history_length = 25000
 
 agents.extend([ExchangeAgent(id=0,
-                             name="EXCHANGE_AGENT",
+                             name="EXCHANGE_AGENT_{}_{}".format(agent_count, short_date),
                              type="ExchangeAgent",
                              mkt_open=mkt_open,
                              mkt_close=mkt_close,
@@ -167,62 +183,73 @@ agents.extend([ExchangeAgent(id=0,
                              book_freq=book_freq,
                              wide_book=True,
                              random_state=np.random.RandomState(seed=np.random.randint(low=0, high=2 ** 32, dtype='uint64')))])
-agent_types.extend("ExchangeAgent")
+agent_types.extend(["ExchangeAgent"])
 agent_count += 1
 
-# 2) Market Replay Agent
-file_name = 'LOB_df.pkl' 
-orders_file_path = f'./data/marketreplay/input/{file_name}'
-
-agents.extend([MarketReplayAgentUSD(id=1,
-                                 name="MARKET_REPLAY_AGENT",
+# 2) Market Replay Agen
+agents.extend([MarketReplayAgentUSD(id=agent_count,
+                                 name="MARKET_REPLAY_AGENT_{}_{}".format(agent_count, short_date),
                                  type='MarketReplayAgent',
                                  symbol=symbol,
                                  log_orders=False,
                                  date=historical_date,
                                  start_time=mkt_open,
                                  end_time=mkt_close,
-                                 orders_file_path=orders_file_path,
+                                 orders_file_path=micex_lob_path,
                                  processed_orders_folder_path='./data/marketreplay/output/',
                                  starting_cash=0,
                                  random_state=np.random.RandomState(seed=np.random.randint(low=0, high=2 ** 32,
                                                                                            dtype='uint64')))])
-agent_types.extend("MarketReplayAgent")
+agent_types.extend(["MarketReplayAgent"])
 agent_count += 1
 
-# 5) Momentum Agents
-num_momentum_agents = 1
+# 3) Reject Replay Agent
+agents.extend([RejectReplayAgent(id=agent_count,
+                                 name="REJECT_REPLAY_AGENT_{}_{}".format(agent_count, short_date),
+                                 type='RejectReplayAgent',
+                                 symbol=symbol,
+                                 log_orders=True,
+                                 date=historical_date,
+                                 start_time=mkt_open,
+                                 end_time=mkt_close,
+                                 orders_file_path=good_rejects_path,
+                                 processed_orders_folder_path='./data/marketreplay/output/',
+                                 starting_cash=0,
+                                 random_state=np.random.RandomState(seed=np.random.randint(low=0, high=2 ** 32,
+                                                                                           dtype='uint64')))])
+agent_types.extend(["RejectReplayAgent"])
+agent_count += 1
 
-agents.extend([MomentumAgent(id=j,
-                             name="MOMENTUM_AGENT_{}".format(j),
-                             type="MomentumAgent",
-                             symbol=symbol,
-                             starting_cash=starting_cash,
-                             min_size=1000,
-                             max_size=10000,
-                             wake_up_freq='20s',
-                             log_orders=True,
-                             random_state=np.random.RandomState(seed=np.random.randint(low=0, high=2 ** 32,
-                                                                                       dtype='uint64')))
-               for j in range(agent_count, agent_count + num_momentum_agents)])
-agent_count += num_momentum_agents
-agent_types.extend("MomentumAgent")
-
-#5.1) imbalance agent
-num_obi_agents = 1
-agents.extend([OrderBookImbalanceAgent(id=j,
-                                        entry_threshold=0.2,
-                                       name="OBI_AGENT_{}".format(j),
-                                       type="OrderBookImbalanceAgent",
-                                       symbol=symbol,
-                                       starting_cash=starting_cash,
-                                       log_orders=True,
-                                       freq=3600000000,
-                                       random_state=np.random.RandomState(seed=np.random.randint(low=0, high=2 ** 32,
-                                                                                                 dtype='uint64')))
-               for j in range(agent_count, agent_count + num_obi_agents)])
-agent_types.extend("OrderBookImbalanceAgent")
-agent_count += num_obi_agents
+# 4) Momentum Agents
+# agents.extend([MomentumAgent(id=agent_count,
+#                              name="MOMENTUM_AGENT_{}".format(agent_count),
+#                              type="MomentumAgent",
+#                              symbol=symbol,
+#                              starting_cash=starting_cash,
+#                              min_size=1000,
+#                              max_size=10000,
+#                              wake_up_freq='20s',
+#                              log_orders=True,
+#                              random_state=np.random.RandomState(seed=np.random.randint(low=0, high=2 ** 32,
+#                                                                                        dtype='uint64')))
+#                ])
+# agent_count += 1
+# agent_types.extend(["MomentumAgent"])
+#
+# # 5) imbalance agent
+# agents.extend([OrderBookImbalanceAgent(id=agent_count,
+#                                         entry_threshold=0.2,
+#                                        name="OBI_AGENT_{}".format(agent_count),
+#                                        type="OrderBookImbalanceAgent",
+#                                        symbol=symbol,
+#                                        starting_cash=starting_cash,
+#                                        log_orders=True,
+#                                        freq=3600000000,
+#                                        random_state=np.random.RandomState(seed=np.random.randint(low=0, high=2 ** 32,
+#                                                                                                  dtype='uint64')))
+#                ])
+# agent_types.extend("OrderBookImbalanceAgent")
+# agent_count += 1
 
 ########################################################################################################################
 ########################################### KERNEL AND OTHER CONFIG ####################################################

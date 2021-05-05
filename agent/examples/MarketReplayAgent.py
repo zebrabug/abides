@@ -76,8 +76,7 @@ class MarketReplayAgent(TradingAgent):
 
 
 class L3OrdersProcessor:
-    #COLUMNS = ['TIMESTAMP', 'ORDER_ID', 'PRICE', 'SIZE', 'BUY_SELL_FLAG']
-    #DIRECTION = {0: 'BUY', 1: 'SELL'}
+
     COLUMNS = ['Time', 'Type', 'Order_ID', 'Size', 'Price', 'Direction']
     DIRECTION = {1: 'BUY', -1: 'SELL'}
 

@@ -4,6 +4,7 @@ batch_output/
 cache/
 local/
 log/
+data/
 .idea/
 results/
 util/crypto/datasets

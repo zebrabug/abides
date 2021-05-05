@@ -1,0 +1,32 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    //python -u abides.py -c marketreplay -t $ticker -d $d -s $seed -l marketreplay_${ticker}_${d} &
+    //"args": ["-c", "marketreplay", "-t", "MSFT", "-d", "2012-06-21", "-s", "1234", "-l", "MSFT_2012-06-21_34200000_57600000_message_5.csv"]
+    //python -u abides.py -c rmsc03 -t ABM -d 20200603 -s 1234 -l rmsc03_two_hour
+    //python -u abides.py -c marketreplay_USD -t USD -d 20210322 -s 1234 -l USD_pickle
+    //"args": ["-c", "marketreplay_USD", "-t", "USD", "-d", "20210322", "-s", "1234", "-l", "USD_pickle"]
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Текущий файл",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "-c",
+                "marketreplay_USD",
+                "-t",
+                "USD",
+                "-d",
+                "20200901",
+                "-s",
+                "1234",
+                "-l",
+                "debug"
+            ]
+        }
+    ]
+}

@@ -187,6 +187,7 @@ class OrderBook:
             limit_order = LimitOrder(order.agent_id, order.time_placed, order.symbol, q, order.is_buy_order, p)
             self.handleLimitOrder(limit_order)
 
+
     def executeOrder(self, order):
         # Finds a single best match for this order, without regard for quantity.
         # Returns the matched order or None if no match found.  DOES remove,

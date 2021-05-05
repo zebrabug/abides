@@ -100,7 +100,7 @@ class Agent:
 
   def logEvent (self, eventType, event = '', appendSummaryLog = False):
     # Adds an event to this agent's log.  The deepcopy of the Event field,
-    # often an object, ensures later state changes to the object will not
+    # often an object, ensures later state changezs to the object will not
     # retroactively update the logged event.
 
     # We can make a single copy of the object (in case it is an arbitrary
