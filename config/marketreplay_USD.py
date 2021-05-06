@@ -155,6 +155,7 @@ micex_lob_path = f'./data/marketreplay/input/LOB/{micex}'
 #good_rejects = 'all_09_rejects.pkl'
 morning_rejects = 'morning_rejects.pkl' # with target true
 #all_morning_rejects = 'all_morning_rejects.pkl'  #all rejects
+#morning_rejects_1020 = 'morning_rejects_1020.pkl'
 good_rejects_path = f'./data/marketreplay/input/{morning_rejects}'
 
 good_rejects_df = pd.read_pickle(good_rejects_path)
@@ -198,6 +199,7 @@ agents.extend([MarketReplayAgentUSD(id=agent_count,
                                  orders_file_path=micex_lob_path,
                                  processed_orders_folder_path='./data/marketreplay/output/',
                                  starting_cash=0,
+                                 is_no_impact = True,
                                  random_state=np.random.RandomState(seed=np.random.randint(low=0, high=2 ** 32,
                                                                                            dtype='uint64')))])
 agent_types.extend(["MarketReplayAgent"])

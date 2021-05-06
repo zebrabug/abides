@@ -85,6 +85,7 @@ class OrderBook:
                           filled_order.agent_id, matched_order.agent_id, filled_order.order_id, matched_order.order_id)
 
                 self.owner.sendMessage(order.agent_id, Message({"msg": "ORDER_EXECUTED", "order": filled_order}))
+                matched_order.tag = order.agent_id
                 self.owner.sendMessage(matched_order.agent_id,
                                        Message({"msg": "ORDER_EXECUTED", "order": matched_order}))
 

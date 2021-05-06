@@ -8,12 +8,14 @@ from agent.TradingAgent import TradingAgent
 from util.order.LimitOrder import LimitOrder
 from util.util import log_print
 
+from copy import deepcopy
+
 
 class MarketReplayAgentUSD(TradingAgent):
 
     def __init__(self, id, name, type, symbol, date, start_time, end_time,
                  orders_file_path, processed_orders_folder_path,
-                 starting_cash, log_orders=False, random_state=None):
+                 starting_cash, log_orders=False, is_no_impact = False, random_state=None):
         super().__init__(id, name, type, starting_cash=starting_cash, log_orders=log_orders, random_state=random_state)
         self.symbol = symbol
         self.date = date
@@ -25,15 +27,31 @@ class MarketReplayAgentUSD(TradingAgent):
                                                    self.date, start_time, end_time,
                                                    orders_file_path, processed_orders_folder_path)
         self.wakeup_times = self.historical_orders.wakeup_times
+        self.is_no_impact = is_no_impact
+        self.wakeup_times_restored = []
 
     def wakeup(self, currentTime):
         super().wakeup(currentTime)
         if not self.mkt_open or not self.mkt_close:
             return
         try:
+            #debug
+            if self.historical_orders.orders_dict[currentTime][0]['Order_ID'] < 0:
+                log_print(f'no impact order {self.historical_orders.orders_dict[currentTime][0]["Order_ID"]}')
+
             self.placeOrder(currentTime, self.historical_orders.orders_dict[currentTime])
-            self.setWakeup(self.wakeup_times[0])
-            self.wakeup_times.pop(0)
+
+            if self.is_no_impact == False or len(self.wakeup_times_restored) < 1:
+                self.setWakeup(self.wakeup_times[0])
+                self.wakeup_times.pop(0)
+            else:
+                if self.wakeup_times[0] <= self.wakeup_times_restored[0]: # == is not expected
+                    self.setWakeup(self.wakeup_times[0])
+                    self.wakeup_times.pop(0)
+                else:
+                    self.setWakeup(self.wakeup_times_restored[0])
+                    self.wakeup_times_restored.pop(0)
+
         except IndexError:
             log_print(f"Market Replay Agent submitted all orders - last order @ {currentTime}")
 
@@ -43,6 +61,27 @@ class MarketReplayAgentUSD(TradingAgent):
             order = msg.body['order']
             self.executed_trades[currentTime] = [order.fill_price, order.quantity]
             self.last_trade[self.symbol] = order.fill_price
+
+            if self.is_no_impact and order.tag == 2:
+
+                # Here is the closest wake aup time which was setup, and there is one at the top of the queue.
+                # We set up our new order time after the one from the queue as we can get it and it is not the past for sure
+                # I'd like to schedule new one after closest wake up, but I dont know how to get that time.
+
+                restore_time = max([ self.wakeup_times[0] ]+ self.wakeup_times_restored) + pd.Timedelta(10, unit='ns') 
+
+                while restore_time in self.historical_orders.orders_dict:
+                    restore_time +=pd.Timedelta(1, unit='ns')
+
+                new_executed_order = {  'Direction': 'BUY' if order.is_buy_order else 'SELL', 
+                                        'Order_ID': -order.order_id, 
+                                        'Price': order.limit_price, 
+                                        'Size': order.quantity, 
+                                        'Type': 'R'}
+
+                self.historical_orders.orders_dict[restore_time] = [new_executed_order]
+                self.wakeup_times_restored.append(restore_time)
+
 
     def placeOrder(self, currentTime, order):
         if len(order) == 1:

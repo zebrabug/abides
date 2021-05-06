@@ -1,6 +1,6 @@
 #!/bin/bash
 for i in 20200901 20200902 20200903 20200904 20200907 20200908 20200909 20200910 20200911 20200914 20200915 20200916 20200917 20200918 20200921 20200922 20200923 20200924 20200925 20200928 20200929 20200930
 do
-   python -u abides.py -c marketreplay_USD -t USD -d $i -s 1234 -l USD_09_replay_good_morning_10k
+   python -u abides.py -c marketreplay_USD -t USD -d $i -s 1234 -l OSD_09_replay_morning_rejects_1020_10k
 done
 
