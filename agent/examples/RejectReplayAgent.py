@@ -141,7 +141,7 @@ class L3OrdersProcessor:
                 'RECORD_TYPE': 'Type'
             }, inplace=True)
             rejects = prep_deals.loc[
-                prep_deals.Deals_or_reject == 'Reject',
+                (prep_deals.Deals_or_reject == 'Reject') & (prep_deals.Size.abs() <= 100000),
                 ['Timestamp', 'Order_ID', 'Price', 'Direction', 'Size', 'Type']]
             rejects['Type'] = 'REJECT'
             rejects['Size'] = rejects['Size'].abs()
