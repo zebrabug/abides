@@ -51,7 +51,7 @@ class Kernel:
                num_simulations=1, defaultComputationDelay=1,
                defaultLatency=1, agentLatency=None, latencyNoise=[1.0],
                agentLatencyModel=None, skip_log=False,
-               seed=None, oracle=None, log_dir=None):
+               seed=None, oracle=None, log_dir=None, dir_of_log_dir=None):
         """
         Do something.
 
@@ -512,7 +512,10 @@ class Kernel:
 
         if self.skip_log: return
 
-        path = os.path.join(".", "log", self.log_dir)
+        if dir_of_log_dir is None:
+          path = os.path.join(".", "log", self.log_dir)
+        else:
+          path = os.path.join(dir_of_log_dir, self.log_dir)
 
         if filename:
             file = "{}.bz2".format(filename)

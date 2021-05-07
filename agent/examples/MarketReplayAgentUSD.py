@@ -36,8 +36,8 @@ class MarketReplayAgentUSD(TradingAgent):
             return
         try:
             #debug
-            if self.historical_orders.orders_dict[currentTime][0]['Order_ID'] < 0:
-                log_print(f'no impact order {self.historical_orders.orders_dict[currentTime][0]["Order_ID"]}')
+            #if self.historical_orders.orders_dict[currentTime][0]['Order_ID'] < 0:
+            #    log_print(f'no impact order {self.historical_orders.orders_dict[currentTime][0]["Order_ID"]}')
 
             self.placeOrder(currentTime, self.historical_orders.orders_dict[currentTime])
 
@@ -151,7 +151,7 @@ class L3OrdersProcessor:
         else:
             print(f'Processed file does not exist for {self.symbol} and {self.date.date()}, processing...')
 
-            orders_df = pd.read_pickle(orders_file_path)
+            orders_df = pd.read_feather(orders_file_path)
             #orders_df['Time'] = orders_df['Time'].dt.tz_localize('Europe/Moscow')
             orders_df = orders_df.loc[(orders_df.Time >= self.start_time) & (orders_df.Time < self.end_time)]
             orders_df['correction'] = orders_df.groupby('Time').cumcount()

@@ -149,14 +149,14 @@ mkt_open = historical_date + pd.to_timedelta(args.start_time.strftime('%H:%M:%S'
 agent_count, agents, agent_types = 0, [], []
 
 short_date = str(historical_date)[5:7] + str(historical_date)[8:10]
-micex = 'LOB_'+short_date+'.pkl'
-micex_lob_path = f'./data/marketreplay/input/LOB/{micex}'
+micex = 'LOB_'+short_date+'.feather'
+micex_lob_path = '/content/drive/MyDrive/Colab Notebooks/Experiments/data/LOB_feather/'+micex
 
 #good_rejects = 'all_09_rejects.pkl'
-morning_rejects = 'morning_rejects.pkl' # with target true
-#all_morning_rejects = 'all_morning_rejects.pkl'  #all rejects
+#morning_rejects = 'morning_rejects.pkl' # with target true
+all_morning_rejects = 'all_morning_rejects.pkl'  #all rejects
 #morning_rejects_1020 = 'morning_rejects_1020.pkl'
-good_rejects_path = f'./data/marketreplay/input/{morning_rejects}'
+good_rejects_path = '/content/drive/MyDrive/Colab Notebooks/Experiments/data/'+all_morning_rejects
 
 good_rejects_df = pd.read_pickle(good_rejects_path)
 
@@ -197,7 +197,7 @@ agents.extend([MarketReplayAgentUSD(id=agent_count,
                                  start_time=mkt_open,
                                  end_time=mkt_close,
                                  orders_file_path=micex_lob_path,
-                                 processed_orders_folder_path='./data/marketreplay/output/',
+                                 processed_orders_folder_path='/content/drive/MyDrive/Colab Notebooks/Experiments/data/output/',
                                  starting_cash=0,
                                  is_no_impact = True,
                                  random_state=np.random.RandomState(seed=np.random.randint(low=0, high=2 ** 32,
@@ -215,7 +215,7 @@ agents.extend([RejectReplayAgent(id=agent_count,
                                  start_time=mkt_open,
                                  end_time=mkt_close,
                                  orders_file_path=good_rejects_path,
-                                 processed_orders_folder_path='./data/marketreplay/output/',
+                                 processed_orders_folder_path='/content/drive/MyDrive/Colab Notebooks/Experiments/data/output/',
                                  starting_cash=0,
                                  random_state=np.random.RandomState(seed=np.random.randint(low=0, high=2 ** 32,
                                                                                            dtype='uint64')))])
@@ -299,7 +299,8 @@ kernel.runner(agents=agents,
               #agentLatency=latency,
               #latencyNoise=noise,
               oracle=None,
-              log_dir=args.log_dir)
+              log_dir=args.log_dir,
+              dir_of_log_dir = '/content/drive/MyDrive/Colab Notebooks/Experiments/data/')
 
 
 simulation_end_time = dt.datetime.now()
