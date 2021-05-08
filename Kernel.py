@@ -105,6 +105,8 @@ class Kernel:
         else:
             self.log_dir = str(int(self.kernelWallClockStart.timestamp()))
 
+        self.dir_of_log_dir = dir_of_log_dir
+
         # The kernel maintains a current time for each agent to allow
         # simulation of per-agent computation delays.  The agent's time
         # is pushed forward (see below) each time it awakens, and it
@@ -512,10 +514,10 @@ class Kernel:
 
         if self.skip_log: return
 
-        if dir_of_log_dir is None:
+        if self.dir_of_log_dir is None:
           path = os.path.join(".", "log", self.log_dir)
         else:
-          path = os.path.join(dir_of_log_dir, self.log_dir)
+          path = os.path.join(self.dir_of_log_dir, self.log_dir)
 
         if filename:
             file = "{}.bz2".format(filename)
